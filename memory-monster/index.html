@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monster Memory Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #root {
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- React and Babel for JSX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    // UPDATE THESE URLs to your GitHub Pages hosted images
+    const SPRITE_SHEETS = [
+      './images/monsters-1.png',  // Sheet 1: Furry Frank, Wendy, Spike, etc.
+      './images/monsters-2.png',  // Sheet 2: Squee, Grumble, Spark, etc.
+      './images/monsters-3.png',  // Sheet 3: Popcap, Gobbles, Starlah, etc.
+    ];
+
+    // Monster data: 36 monsters total (12 from each sprite sheet)
+    const MONSTERS = [
+      // Sheet 1
+      { id: 1, name: 'Furry Frank', sheet: 0, row: 0, col: 0, color: '#F39C12' },
+      { id: 2, name: 'Wendy', sheet: 0, row: 0, col: 1, color: '#9B59B6' },
+      { id: 3, name: 'Spike', sheet: 0, row: 0, col: 2, color: '#3498DB' },
+      { id: 4, name: 'Draco', sheet: 0, row: 0, col: 3, color: '#27AE60' },
+      { id: 5, name: 'Cyclops Sam', sheet: 0, row: 1, col: 0, color: '#8E44AD' },
+      { id: 6, name: 'Lila', sheet: 0, row: 1, col: 1, color: '#E91E63' },
+      { id: 7, name: 'Marty', sheet: 0, row: 1, col: 2, color: '#8BC34A' },
+      { id: 8, name: 'Zappa', sheet: 0, row: 1, col: 3, color: '#E74C3C' },
+      { id: 9, name: 'Count Fang', sheet: 0, row: 2, col: 0, color: '#2C3E50' },
+      { id: 10, name: 'Buzzy', sheet: 0, row: 2, col: 1, color: '#F1C40F' },
+      { id: 11, name: 'Nessie', sheet: 0, row: 2, col: 2, color: '#3498DB' },
+      { id: 12, name: 'Rocky', sheet: 0, row: 2, col: 3, color: '#795548' },
+      // Sheet 2
+      { id: 13, name: 'Squee', sheet: 1, row: 0, col: 0, color: '#E91E63' },
+      { id: 14, name: 'Grumble', sheet: 1, row: 0, col: 1, color: '#4CAF50' },
+      { id: 15, name: 'Spark', sheet: 1, row: 0, col: 2, color: '#9C27B0' },
+      { id: 16, name: 'Oozebert', sheet: 1, row: 0, col: 3, color: '#8BC34A' },
+      { id: 17, name: 'Bumble', sheet: 1, row: 1, col: 0, color: '#FF9800' },
+      { id: 18, name: 'Clara', sheet: 1, row: 1, col: 1, color: '#E91E63' },
+      { id: 19, name: 'Webster', sheet: 1, row: 1, col: 2, color: '#3F51B5' },
+      { id: 20, name: 'Stomper', sheet: 1, row: 1, col: 3, color: '#2196F3' },
+      { id: 21, name: 'Tombster', sheet: 1, row: 2, col: 0, color: '#4CAF50' },
+      { id: 22, name: 'Giggles', sheet: 1, row: 2, col: 1, color: '#FF5722' },
+      { id: 23, name: 'Blip', sheet: 1, row: 2, col: 2, color: '#8BC34A' },
+      { id: 24, name: 'Gnash', sheet: 1, row: 2, col: 3, color: '#607D8B' },
+      // Sheet 3
+      { id: 25, name: 'Popcap', sheet: 2, row: 0, col: 0, color: '#3F51B5' },
+      { id: 26, name: 'Gobbles', sheet: 2, row: 0, col: 1, color: '#9C27B0' },
+      { id: 27, name: 'Starlah', sheet: 2, row: 0, col: 2, color: '#FFC107' },
+      { id: 28, name: 'Thorn', sheet: 2, row: 0, col: 3, color: '#4CAF50' },
+      { id: 29, name: 'Snappy', sheet: 2, row: 1, col: 0, color: '#03A9F4' },
+      { id: 30, name: 'Whiskers', sheet: 2, row: 1, col: 1, color: '#FF9800' },
+      { id: 31, name: 'Ivan', sheet: 2, row: 1, col: 2, color: '#90CAF9' },
+      { id: 32, name: 'Fizzle', sheet: 2, row: 1, col: 3, color: '#FF5722' },
+      { id: 33, name: 'Dribble', sheet: 2, row: 2, col: 0, color: '#7E57C2' },
+      { id: 34, name: 'Glub', sheet: 2, row: 2, col: 1, color: '#26A69A' },
+      { id: 35, name: 'Zozo', sheet: 2, row: 2, col: 2, color: '#FFEB3B' },
+      { id: 36, name: 'Chomp', sheet: 2, row: 2, col: 3, color: '#FF5722' },
+    ];
+
+    const GAME_STATES = {
+      START: 'start',
+      PREVIEW: 'preview',
+      PLAYING: 'playing',
+      WON: 'won',
+    };
+
+    const STORAGE_KEY = 'monsterMemoryData';
+
+    // Load data from localStorage
+    const loadStorageData = () => {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+          return JSON.parse(data);
+        }
+      } catch (e) {
+        console.error('Error loading storage:', e);
+      }
+      return { leaderboard: [], players: [] };
+    };
+
+    // Save data to localStorage
+    const saveStorageData = (data) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error('Error saving storage:', e);
+      }
+    };
+
+    // Shuffle array using Fisher-Yates
+    const shuffleArray = (array) => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
+
+    // Monster sprite component
+    const MonsterSprite = ({ monster, size = 60 }) => {
+      const spriteWidth = 1024;
+      const spriteHeight = 768;
+      const cols = 4;
+      const rows = 3;
+      const cellWidth = spriteWidth / cols;
+      const cellHeight = spriteHeight / rows;
+      
+      const xPos = monster.col * cellWidth;
+      const yPos = monster.row * cellHeight;
+      
+      return (
+        <div style={{
+          width: size,
+          height: size,
+          backgroundImage: `url(${SPRITE_SHEETS[monster.sheet]})`,
+          backgroundPosition: `-${xPos * (size / cellWidth)}px -${yPos * (size / cellHeight)}px`,
+          backgroundSize: `${spriteWidth * (size / cellWidth)}px ${spriteHeight * (size / cellHeight)}px`,
+          borderRadius: '8px',
+        }} />
+      );
+    };
+
+    // Card component
+    const Card = ({ card, isFlipped, isMatched, onClick, previewMode, gridSize }) => {
+      const showFront = isFlipped || isMatched || previewMode;
+      const cardSize = gridSize === 6 ? 'clamp(50px, 12vw, 90px)' : 'clamp(60px, 15vw, 100px)';
+      
+      return (
+        <div
+          onClick={onClick}
+          className={`card-container ${isMatched ? 'matched' : ''}`}
+          style={{
+            perspective: '1000px',
+            width: cardSize,
+            height: cardSize,
+            cursor: isMatched ? 'default' : 'pointer',
+          }}
+        >
+          <div
+            className="card-inner"
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              transform: showFront ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            }}
+          >
+            {/* Back of card */}
+            <div
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                backfaceVisibility: 'hidden',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3), inset 0 2px 0 rgba(255,255,255,0.2)',
+                border: '2px solid rgba(255,255,255,0.3)',
+              }}
+            >
+              <div style={{ fontSize: 'clamp(1.2rem, 4vw, 2rem)', opacity: 0.9 }}>❓</div>
+              <div style={{
+                position: 'absolute',
+                inset: '4px',
+                border: '2px dashed rgba(255,255,255,0.2)',
+                borderRadius: '8px',
+                pointerEvents: 'none',
+              }} />
+            </div>
+            
+            {/* Front of card (monster) */}
+            <div
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                backfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+                borderRadius: '12px',
+                background: `linear-gradient(135deg, ${card.color}30 0%, ${card.color}60 100%)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: `0 4px 20px ${card.color}30`,
+                border: `2px solid ${card.color}`,
+                overflow: 'hidden',
+              }}
+            >
+              <MonsterSprite monster={card} size={parseInt(cardSize) || 70} />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Player selector component
+    const PlayerSelector = ({ players, selectedPlayer, onSelect, onNewPlayer }) => {
+      if (players.length === 0) return null;
+      
+      return (
+        <div style={{
+          background: 'rgba(255,255,255,0.08)',
+          borderRadius: '16px',
+          padding: '16px',
+          marginBottom: '20px',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}>
+          <div style={{
+            fontFamily: '"Fredoka One", cursive',
+            color: '#FFD93D',
+            fontSize: '0.9rem',
+            marginBottom: '12px',
+            textAlign: 'center',
+          }}>
+            👋 Welcome back! Select your name:
+          </div>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            justifyContent: 'center',
+          }}>
+            {players.slice(0, 8).map((player, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSelect(player)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  border: selectedPlayer === player 
+                    ? '2px solid #6BCB77' 
+                    : '2px solid rgba(255,255,255,0.2)',
+                  background: selectedPlayer === player 
+                    ? 'rgba(107, 203, 119, 0.3)' 
+                    : 'rgba(255,255,255,0.1)',
+                  color: 'white',
+                  fontFamily: '"Fredoka One", cursive',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {player}
+              </button>
+            ))}
+            <button
+              onClick={onNewPlayer}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: '2px dashed rgba(255,255,255,0.3)',
+                background: 'transparent',
+                color: 'rgba(255,255,255,0.7)',
+                fontFamily: '"Fredoka One", cursive',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+              }}
+            >
+              + New Player
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // Leaderboard component
+    const Leaderboard = ({ scores }) => {
+      if (scores.length === 0) return null;
+      
+      const sortedScores = [...scores].sort((a, b) => a.score - b.score).slice(0, 5);
+      
+      return (
+        <div style={{
+          background: 'rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '20px',
+          border: '2px solid rgba(255,255,255,0.2)',
+        }}>
+          <h3 style={{
+            fontFamily: '"Fredoka One", cursive',
+            fontSize: '1.3rem',
+            marginBottom: '15px',
+            textAlign: 'center',
+            color: '#FFD93D',
+            textShadow: '2px 2px 0 #FF6B35',
+          }}>
+            🏆 Champions 🏆
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {sortedScores.map((entry, index) => (
+              <div
+                key={index}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '8px 12px',
+                  background: index === 0 
+                    ? 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)'
+                    : index === 1 
+                      ? 'linear-gradient(90deg, #C0C0C0 0%, #A8A8A8 100%)'
+                      : index === 2
+                        ? 'linear-gradient(90deg, #CD7F32 0%, #B87333 100%)'
+                        : 'rgba(255,255,255,0.1)',
+                  borderRadius: '10px',
+                  fontFamily: '"Fredoka One", cursive',
+                  fontSize: '0.9rem',
+                  color: index < 3 ? '#1a1a2e' : 'white',
+                }}
+              >
+                <span style={{ fontSize: '1.1rem' }}>
+                  {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+                </span>
+                <span style={{ flex: 1 }}>{entry.name}</span>
+                <span style={{ 
+                  fontWeight: 'bold',
+                  background: index < 3 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
+                  padding: '3px 10px',
+                  borderRadius: '15px',
+                  fontSize: '0.85rem',
+                }}>
+                  {entry.score} tries
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // Confetti component
+    const Confetti = () => {
+      const colors = ['#FF6B35', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6', '#E91E63'];
+      const confetti = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 2 + Math.random() * 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 8 + Math.random() * 8,
+      }));
+
+      return (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+          zIndex: 1000,
+        }}>
+          {confetti.map((c) => (
+            <div
+              key={c.id}
+              style={{
+                position: 'absolute',
+                left: `${c.left}%`,
+                top: '-20px',
+                width: `${c.size}px`,
+                height: `${c.size}px`,
+                background: c.color,
+                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+                animation: `confettiFall ${c.duration}s ease-in ${c.delay}s infinite`,
+              }}
+            />
+          ))}
+        </div>
+      );
+    };
+
+    // Main game component
+    function MonsterMemory() {
+      const [gameState, setGameState] = useState(GAME_STATES.START);
+      const [cards, setCards] = useState([]);
+      const [flippedIndices, setFlippedIndices] = useState([]);
+      const [matchedPairs, setMatchedPairs] = useState([]);
+      const [tries, setTries] = useState(0);
+      const [playerName, setPlayerName] = useState('');
+      const [leaderboard, setLeaderboard] = useState([]);
+      const [knownPlayers, setKnownPlayers] = useState([]);
+      const [previewCountdown, setPreviewCountdown] = useState(1);
+      const [showNewPlayerInput, setShowNewPlayerInput] = useState(false);
+      const [imagesLoaded, setImagesLoaded] = useState(false);
+
+      // Load saved data on mount
+      useEffect(() => {
+        const data = loadStorageData();
+        setLeaderboard(data.leaderboard || []);
+        setKnownPlayers(data.players || []);
+        if (data.players?.length === 0) {
+          setShowNewPlayerInput(true);
+        }
+      }, []);
+
+      // Preload sprite sheets
+      useEffect(() => {
+        let loaded = 0;
+        SPRITE_SHEETS.forEach(src => {
+          const img = new Image();
+          img.onload = () => {
+            loaded++;
+            if (loaded === SPRITE_SHEETS.length) {
+              setImagesLoaded(true);
+            }
+          };
+          img.onerror = () => {
+            loaded++;
+            if (loaded === SPRITE_SHEETS.length) {
+              setImagesLoaded(true);
+            }
+          };
+          img.src = src;
+        });
+      }, []);
+
+      // Initialize game cards (18 pairs for 6x6 grid)
+      const initializeCards = useCallback(() => {
+        const selectedMonsters = shuffleArray(MONSTERS).slice(0, 18);
+        const pairs = [...selectedMonsters, ...selectedMonsters];
+        const shuffledCards = shuffleArray(pairs).map((monster, idx) => ({
+          ...monster,
+          uniqueId: `${monster.id}-${idx}`,
+        }));
+        setCards(shuffledCards);
+        setFlippedIndices([]);
+        setMatchedPairs([]);
+        setTries(0);
+      }, []);
+
+      // Start game
+      const startGame = () => {
+        if (playerName.trim().length < 2) return;
+        
+        // Add to known players if new
+        const trimmedName = playerName.trim();
+        if (!knownPlayers.includes(trimmedName)) {
+          const newPlayers = [trimmedName, ...knownPlayers].slice(0, 10);
+          setKnownPlayers(newPlayers);
+          const data = loadStorageData();
+          saveStorageData({ ...data, players: newPlayers });
+        }
+        
+        initializeCards();
+        setGameState(GAME_STATES.PREVIEW);
+        setPreviewCountdown(1);
+      };
+
+      // Preview countdown
+      useEffect(() => {
+        if (gameState !== GAME_STATES.PREVIEW) return;
+        
+        if (previewCountdown > 0) {
+          const timer = setTimeout(() => setPreviewCountdown(prev => prev - 1), 1000);
+          return () => clearTimeout(timer);
+        } else {
+          setGameState(GAME_STATES.PLAYING);
+        }
+      }, [gameState, previewCountdown]);
+
+      // Handle card click
+      const handleCardClick = (index) => {
+        if (gameState !== GAME_STATES.PLAYING) return;
+        if (flippedIndices.length >= 2) return;
+        if (flippedIndices.includes(index)) return;
+        if (matchedPairs.includes(cards[index].id)) return;
+
+        const newFlipped = [...flippedIndices, index];
+        setFlippedIndices(newFlipped);
+
+        if (newFlipped.length === 2) {
+          setTries(prev => prev + 1);
+          const [first, second] = newFlipped;
+          
+          if (cards[first].id === cards[second].id) {
+            setTimeout(() => {
+              setMatchedPairs(prev => [...prev, cards[first].id]);
+              setFlippedIndices([]);
+            }, 500);
+          } else {
+            setTimeout(() => setFlippedIndices([]), 1000);
+          }
+        }
+      };
+
+      // Check for win
+      useEffect(() => {
+        if (matchedPairs.length === 18 && gameState === GAME_STATES.PLAYING) {
+          setTimeout(() => {
+            setGameState(GAME_STATES.WON);
+            const newEntry = { name: playerName.trim(), score: tries };
+            const newLeaderboard = [...leaderboard, newEntry]
+              .sort((a, b) => a.score - b.score)
+              .slice(0, 10);
+            setLeaderboard(newLeaderboard);
+            
+            const data = loadStorageData();
+            saveStorageData({ ...data, leaderboard: newLeaderboard });
+          }, 600);
+        }
+      }, [matchedPairs, gameState, tries, playerName, leaderboard]);
+
+      // Play again
+      const playAgain = () => {
+        setShowNewPlayerInput(false);
+        setGameState(GAME_STATES.START);
+      };
+
+      // Handle player selection
+      const handleSelectPlayer = (name) => {
+        setPlayerName(name);
+        setShowNewPlayerInput(false);
+      };
+
+      const handleNewPlayer = () => {
+        setPlayerName('');
+        setShowNewPlayerInput(true);
+      };
+
+      // Generate stars for background
+      const stars = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        size: 1 + Math.random() * 2,
+        delay: Math.random() * 3,
+      }));
+
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+          padding: '20px',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Animated stars background */}
+          {stars.map(star => (
+            <div
+              key={star.id}
+              style={{
+                position: 'absolute',
+                left: `${star.left}%`,
+                top: `${star.top}%`,
+                width: `${star.size}px`,
+                height: `${star.size}px`,
+                background: 'white',
+                borderRadius: '50%',
+                animation: `twinkle 2s ease-in-out ${star.delay}s infinite`,
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
+
+          {/* Global styles */}
+          <style>{`
+            @keyframes twinkle {
+              0%, 100% { opacity: 0.3; }
+              50% { opacity: 1; }
+            }
+            @keyframes float {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
+            }
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              25% { transform: translateX(-5px); }
+              75% { transform: translateX(5px); }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(20px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes bounce {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.1); }
+            }
+            @keyframes confettiFall {
+              0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            }
+            .card-container:hover:not(.matched) .card-inner {
+              box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            }
+            .matched {
+              animation: matchPop 0.5s ease-out forwards;
+            }
+            @keyframes matchPop {
+              0% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.1); }
+              100% { transform: scale(0); opacity: 0; }
+            }
+          `}</style>
+
+          <div style={{
+            maxWidth: '800px',
+            margin: '0 auto',
+            position: 'relative',
+            zIndex: 1,
+          }}>
+            {/* Header */}
+            <h1 style={{
+              fontFamily: '"Fredoka One", cursive',
+              fontSize: 'clamp(1.8rem, 5vw, 2.5rem)',
+              textAlign: 'center',
+              marginBottom: '10px',
+              background: 'linear-gradient(135deg, #FFD93D 0%, #FF6B35 50%, #6BCB77 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+              animation: 'float 3s ease-in-out infinite',
+            }}>
+              🎃 Monster Memory 👻
+            </h1>
+
+            {/* Stats bar during game */}
+            {(gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PREVIEW) && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '20px',
+                marginBottom: '15px',
+                flexWrap: 'wrap',
+              }}>
+                <div style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '8px 20px',
+                  borderRadius: '25px',
+                  fontFamily: '"Fredoka One", cursive',
+                  color: 'white',
+                  fontSize: '1rem',
+                }}>
+                  👤 {playerName}
+                </div>
+                <div style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '8px 20px',
+                  borderRadius: '25px',
+                  fontFamily: '"Fredoka One", cursive',
+                  color: '#FFD93D',
+                  fontSize: '1rem',
+                }}>
+                  🎯 Tries: {tries}
+                </div>
+                <div style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  padding: '8px 20px',
+                  borderRadius: '25px',
+                  fontFamily: '"Fredoka One", cursive',
+                  color: '#6BCB77',
+                  fontSize: '1rem',
+                }}>
+                  ✨ Pairs: {matchedPairs.length}/18
+                </div>
+              </div>
+            )}
+
+            {/* Start Screen */}
+            {gameState === GAME_STATES.START && (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '25px',
+                animation: 'fadeIn 0.5s ease-out',
+              }}>
+                {/* Loading indicator */}
+                {!imagesLoaded && (
+                  <div style={{
+                    fontFamily: '"Fredoka One", cursive',
+                    color: '#FFD93D',
+                    fontSize: '1rem',
+                    animation: 'float 1s ease-in-out infinite',
+                  }}>
+                    Loading monsters... 🎨
+                  </div>
+                )}
+
+                {/* Name input area */}
+                <div style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '24px',
+                  padding: '30px',
+                  border: '2px solid rgba(255,255,255,0.2)',
+                  width: '100%',
+                  maxWidth: '400px',
+                }}>
+                  {/* Player selector */}
+                  {knownPlayers.length > 0 && !showNewPlayerInput && (
+                    <PlayerSelector
+                      players={knownPlayers}
+                      selectedPlayer={playerName}
+                      onSelect={handleSelectPlayer}
+                      onNewPlayer={handleNewPlayer}
+                    />
+                  )}
+
+                  {/* New player input */}
+                  {(showNewPlayerInput || knownPlayers.length === 0) && (
+                    <>
+                      <h2 style={{
+                        fontFamily: '"Fredoka One", cursive',
+                        color: 'white',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                        fontSize: '1.3rem',
+                      }}>
+                        {knownPlayers.length > 0 ? 'New Player' : 'Enter Your Name'}
+                      </h2>
+                      <input
+                        type="text"
+                        value={playerName}
+                        onChange={(e) => setPlayerName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && startGame()}
+                        placeholder="Your awesome name..."
+                        maxLength={15}
+                        style={{
+                          width: '100%',
+                          padding: '14px 20px',
+                          fontSize: '1.1rem',
+                          borderRadius: '50px',
+                          border: 'none',
+                          background: 'rgba(255,255,255,0.9)',
+                          fontFamily: '"Fredoka One", cursive',
+                          textAlign: 'center',
+                          outline: 'none',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                          marginBottom: '15px',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      {knownPlayers.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setShowNewPlayerInput(false);
+                            if (knownPlayers.length > 0) setPlayerName(knownPlayers[0]);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            marginBottom: '15px',
+                            background: 'transparent',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            borderRadius: '25px',
+                            color: 'rgba(255,255,255,0.7)',
+                            fontFamily: '"Fredoka One", cursive',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          ← Back to player list
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  <button
+                    onClick={startGame}
+                    disabled={playerName.trim().length < 2 || !imagesLoaded}
+                    style={{
+                      width: '100%',
+                      padding: '14px 28px',
+                      fontSize: '1.2rem',
+                      fontFamily: '"Fredoka One", cursive',
+                      borderRadius: '50px',
+                      border: 'none',
+                      background: playerName.trim().length >= 2 && imagesLoaded
+                        ? 'linear-gradient(135deg, #6BCB77 0%, #4CAF50 100%)'
+                        : '#555',
+                      color: 'white',
+                      cursor: playerName.trim().length >= 2 && imagesLoaded ? 'pointer' : 'not-allowed',
+                      boxShadow: playerName.trim().length >= 2 && imagesLoaded
+                        ? '0 4px 20px rgba(107, 203, 119, 0.4)'
+                        : 'none',
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    🎮 Start Game! 🎮
+                  </button>
+                </div>
+
+                {/* Leaderboard */}
+                {leaderboard.length > 0 && (
+                  <div style={{ width: '100%', maxWidth: '400px' }}>
+                    <Leaderboard scores={leaderboard} />
+                  </div>
+                )}
+
+                {/* Instructions */}
+                <div style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  borderRadius: '16px',
+                  padding: '20px 25px',
+                  maxWidth: '450px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}>
+                  <h3 style={{
+                    fontFamily: '"Fredoka One", cursive',
+                    color: '#FFD93D',
+                    marginBottom: '15px',
+                    textAlign: 'center',
+                    fontSize: '1.1rem',
+                  }}>
+                    📖 How to Play
+                  </h3>
+                  <ul style={{
+                    color: 'rgba(255,255,255,0.8)',
+                    lineHeight: '1.8',
+                    paddingLeft: '20px',
+                    fontSize: '0.95rem',
+                    margin: 0,
+                  }}>
+                    <li>Quick peek at all 36 monsters!</li>
+                    <li>Flip two cards to find matching pairs</li>
+                    <li>Match all 18 pairs with fewest tries</li>
+                    <li>Beat your friends' scores!</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Preview Screen */}
+            {gameState === GAME_STATES.PREVIEW && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontFamily: '"Fredoka One", cursive',
+                  fontSize: '1.5rem',
+                  color: '#FFD93D',
+                  marginBottom: '15px',
+                  animation: 'shake 0.5s ease-in-out infinite',
+                }}>
+                  👀 Memorize the monsters! 👀
+                </div>
+                <div style={{
+                  fontFamily: '"Fredoka One", cursive',
+                  fontSize: '3rem',
+                  color: '#FF6B35',
+                  textShadow: '0 4px 20px rgba(255, 107, 53, 0.6)',
+                  marginBottom: '20px',
+                }}>
+                  {previewCountdown || 'GO!'}
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(6, 1fr)',
+                  gap: '8px',
+                  maxWidth: '600px',
+                  margin: '0 auto',
+                  justifyItems: 'center',
+                }}>
+                  {cards.map((card) => (
+                    <Card
+                      key={card.uniqueId}
+                      card={card}
+                      isFlipped={false}
+                      isMatched={false}
+                      previewMode={true}
+                      onClick={() => {}}
+                      gridSize={6}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Game Board */}
+            {gameState === GAME_STATES.PLAYING && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(6, 1fr)',
+                gap: 'clamp(6px, 1.5vw, 12px)',
+                maxWidth: '600px',
+                margin: '0 auto',
+                padding: '15px',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '20px',
+                border: '2px solid rgba(255,255,255,0.1)',
+                justifyItems: 'center',
+              }}>
+                {cards.map((card, index) => (
+                  <Card
+                    key={card.uniqueId}
+                    card={card}
+                    isFlipped={flippedIndices.includes(index)}
+                    isMatched={matchedPairs.includes(card.id)}
+                    previewMode={false}
+                    onClick={() => handleCardClick(index)}
+                    gridSize={6}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Win Screen */}
+            {gameState === GAME_STATES.WON && (
+              <>
+                <Confetti />
+                <div style={{
+                  textAlign: 'center',
+                  animation: 'fadeIn 0.5s ease-out',
+                }}>
+                  <div style={{
+                    fontSize: '4rem',
+                    marginBottom: '15px',
+                    animation: 'float 2s ease-in-out infinite',
+                  }}>
+                    🎉
+                  </div>
+                  <h2 style={{
+                    fontFamily: '"Fredoka One", cursive',
+                    fontSize: 'clamp(1.8rem, 5vw, 2.5rem)',
+                    background: 'linear-gradient(135deg, #FFD93D 0%, #FF6B35 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    marginBottom: '10px',
+                  }}>
+                    Amazing, {playerName}!
+                  </h2>
+                  <p style={{
+                    fontFamily: '"Fredoka One", cursive',
+                    fontSize: '1.3rem',
+                    color: 'white',
+                    marginBottom: '25px',
+                  }}>
+                    You matched all monsters in{' '}
+                    <span style={{ color: '#6BCB77', fontSize: '1.8rem' }}>
+                      {tries}
+                    </span>
+                    {' '}tries!
+                  </p>
+
+                  <button
+                    onClick={playAgain}
+                    style={{
+                      padding: '16px 35px',
+                      fontSize: '1.2rem',
+                      fontFamily: '"Fredoka One", cursive',
+                      borderRadius: '50px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 20px rgba(102, 126, 234, 0.4)',
+                      transition: 'transform 0.2s ease',
+                      marginBottom: '30px',
+                    }}
+                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                  >
+                    🔄 Play Again!
+                  </button>
+
+                  <div style={{ maxWidth: '400px', margin: '0 auto' }}>
+                    <Leaderboard scores={leaderboard} />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Render the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<MonsterMemory />);
+  </script>
+</body>
+</html>
