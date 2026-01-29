@@ -38,10 +38,10 @@
 
         // Monster data: 36 monsters total (12 from each sprite sheet)
 
-        const gridWidth = 6;
-        const gridHeight = 5;
-        const totalCards = gridWidth * gridHeight / 2;
+        const DEFAULT_COLS = 6;
+        const DEFAULT_ROWS = 5;
         const PREVIEW_LENGTH = 10;
+        const GRID_CONFIG_KEY = 'monsterMemoryGridConfig';
 
 
         const MONSTERS = [
@@ -92,6 +92,29 @@
         };
 
         const STORAGE_KEY = 'monsterMemoryData';
+
+        // Load grid config from localStorage
+        const loadGridConfig = () => {
+            try {
+                const data = localStorage.getItem(GRID_CONFIG_KEY);
+                if (data) {
+                    const config = JSON.parse(data);
+                    return { rows: config.rows || DEFAULT_ROWS, cols: config.cols || DEFAULT_COLS };
+                }
+            } catch (e) {
+                console.error('Error loading grid config:', e);
+            }
+            return { rows: DEFAULT_ROWS, cols: DEFAULT_COLS };
+        };
+
+        // Save grid config to localStorage
+        const saveGridConfig = (rows, cols) => {
+            try {
+                localStorage.setItem(GRID_CONFIG_KEY, JSON.stringify({ rows, cols }));
+            } catch (e) {
+                console.error('Error saving grid config:', e);
+            }
+        };
 
         // Load data from localStorage
         const loadStorageData = () => {
@@ -299,13 +322,23 @@
                             + New Player
                         </button>
                     </div>
+                    
+
                 </div>
             );
         };
 
         // Leaderboard component
-        const Leaderboard = ({ scores }) => {
-            if (scores.length === 0) return null;
+        const Leaderboard = ({ scores, gridRows, gridCols, onGridChange }) => {
+            const [tempRows, setTempRows] = useState(gridRows);
+            const [tempCols, setTempCols] = useState(gridCols);
+            const [error, setError] = useState('');
+
+            // Sync temp values when props change
+            useEffect(() => {
+                setTempRows(gridRows);
+                setTempCols(gridCols);
+            }, [gridRows, gridCols]);
 
             const sortedScores = [...scores].sort((a, b) => a.score - b.score).slice(0, 5);
 
@@ -317,54 +350,173 @@
                     padding: '20px',
                     border: '2px solid rgba(255,255,255,0.2)',
                 }}>
-                    <h3 style={{
-                        fontFamily: '"Roboto", cursive',
-                        fontSize: '1.3rem',
-                        marginBottom: '15px',
-                        textAlign: 'center',
-                        color: '#FFD93D',
-                        textShadow: '2px 2px 0 #FF6B35',
+                    {sortedScores.length > 0 && (
+                        <>
+                            <h3 style={{
+                                fontFamily: '"Roboto", cursive',
+                                fontSize: '1.3rem',
+                                marginBottom: '15px',
+                                textAlign: 'center',
+                                color: '#FFD93D',
+                                textShadow: '2px 2px 0 #FF6B35',
+                            }}>
+                                🏆 Champions 🏆
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {sortedScores.map((entry, index) => (
+                                    <div
+                                        key={index}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            padding: '8px 12px',
+                                            background: index === 0
+                                                ? 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)'
+                                                : index === 1
+                                                    ? 'linear-gradient(90deg, #C0C0C0 0%, #A8A8A8 100%)'
+                                                    : index === 2
+                                                        ? 'linear-gradient(90deg, #CD7F32 0%, #B87333 100%)'
+                                                        : 'rgba(255,255,255,0.1)',
+                                            borderRadius: '2px',
+                                            fontFamily: '"Roboto", cursive',
+                                            fontSize: '0.9rem',
+                                            color: index < 3 ? '#1a1a2e' : 'white',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.1rem' }}>
+                                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+                                        </span>
+                                        <span style={{ flex: 1 }}>{entry.name}</span>
+                                        <span style={{
+                                            fontWeight: 'bold',
+                                            background: index < 3 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
+                                            padding: '3px 10px',
+                                            borderRadius: '2px',
+                                            fontSize: '0.85rem',
+                                        }}>
+                                            {entry.score} tries
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    <div style={{
+                        background: 'rgba(255,255,255,0.1)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '2px',
+                        padding: '20px',
+                        marginTop: '15px',
+                        border: '2px solid rgba(255,255,255,0.2)',
                     }}>
-                        🏆 Champions 🏆
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {sortedScores.map((entry, index) => (
-                            <div
-                                key={index}
+                        <h4 style={{
+                            fontFamily: '"Roboto", cursive',
+                            fontSize: '1rem',
+                            marginBottom: '12px',
+                            textAlign: 'center',
+                            color: '#FFD93D',
+                        }}>
+                            Grid Size
+                        </h4>
+                        <div style={{
+                            display: 'flex',
+                            gap: '15px',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <label style={{ color: 'white', fontFamily: '"Roboto", cursive', fontSize: '0.9rem' }}>Rows:</label>
+                                <input
+                                    type="number"
+                                    min="2"
+                                    max="8"
+                                    value={tempRows}
+                                    onChange={(e) => setTempRows(parseInt(e.target.value) || 2)}
+                                    style={{
+                                        width: '60px',
+                                        padding: '6px 10px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: 'rgba(255,255,255,0.9)',
+                                        fontFamily: '"Roboto", cursive',
+                                        textAlign: 'center',
+                                        fontSize: '0.9rem',
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <label style={{ color: 'white', fontFamily: '"Roboto", cursive', fontSize: '0.9rem' }}>Cols:</label>
+                                <input
+                                    type="number"
+                                    min="2"
+                                    max="9"
+                                    value={tempCols}
+                                    onChange={(e) => setTempCols(parseInt(e.target.value) || 2)}
+                                    style={{
+                                        width: '60px',
+                                        padding: '6px 10px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: 'rgba(255,255,255,0.9)',
+                                        fontFamily: '"Roboto", cursive',
+                                        textAlign: 'center',
+                                        fontSize: '0.9rem',
+                                    }}
+                                />
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setError('');
+                                    if ((tempRows * tempCols) % 2 !== 0) {
+                                        setError('Total cards must be even!');
+                                        return;
+                                    }
+                                    if ((tempRows * tempCols) / 2 > 36) {
+                                        setError('Max 36 pairs (72 cards)');
+                                        return;
+                                    }
+                                    if (onGridChange) {
+                                        onGridChange(tempRows, tempCols);
+                                    }
+                                }}
                                 style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px',
-                                    padding: '8px 12px',
-                                    background: index === 0
-                                        ? 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)'
-                                        : index === 1
-                                            ? 'linear-gradient(90deg, #C0C0C0 0%, #A8A8A8 100%)'
-                                            : index === 2
-                                                ? 'linear-gradient(90deg, #CD7F32 0%, #B87333 100%)'
-                                                : 'rgba(255,255,255,0.1)',
-                                    borderRadius: '2px',
+                                    padding: '6px 16px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #6BCB77 0%, #4CAF50 100%)',
+                                    color: 'white',
                                     fontFamily: '"Roboto", cursive',
-                                    fontSize: '0.9rem',
-                                    color: index < 3 ? '#1a1a2e' : 'white',
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
                                 }}
                             >
-                                <span style={{ fontSize: '1.1rem' }}>
-                                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
-                                </span>
-                                <span style={{ flex: 1 }}>{entry.name}</span>
-                                <span style={{
-                                    fontWeight: 'bold',
-                                    background: index < 3 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
-                                    padding: '3px 10px',
-                                    borderRadius: '2px',
-                                    fontSize: '0.85rem',
-                                }}>
-                                    {entry.score} tries
-                                </span>
+                                Apply
+                            </button>
+                        </div>
+                        {error && (
+                            <div style={{
+                                color: '#FF6B6B',
+                                fontSize: '0.8rem',
+                                marginTop: '8px',
+                                textAlign: 'center',
+                                fontFamily: '"Roboto", cursive',
+                            }}>
+                                {error}
                             </div>
-                        ))}
+                        )}
+                        <div style={{
+                            color: 'rgba(255,255,255,0.6)',
+                            fontSize: '0.75rem',
+                            marginTop: '8px',
+                            textAlign: 'center',
+                            fontFamily: '"Roboto", cursive',
+                        }}>
+                            Current: {gridRows} x {gridCols} = {gridRows * gridCols} cards ({(gridRows * gridCols) / 2} pairs)
+                        </div>
                     </div>
+                    
                 </div>
             );
         };
@@ -425,6 +577,11 @@
             const [showNewPlayerInput, setShowNewPlayerInput] = useState(false);
             const [imagesLoaded, setImagesLoaded] = useState(true);
 
+            // Grid configuration state
+            const [gridRows, setGridRows] = useState(DEFAULT_ROWS);
+            const [gridCols, setGridCols] = useState(DEFAULT_COLS);
+            const totalCards = (gridRows * gridCols) / 2;
+
             // Load saved data on mount
             useEffect(() => {
                 const data = loadStorageData();
@@ -433,11 +590,31 @@
                 if (data.players?.length === 0) {
                     setShowNewPlayerInput(true);
                 }
+                // Load grid config
+                const gridConfig = loadGridConfig();
+                setGridRows(gridConfig.rows);
+                setGridCols(gridConfig.cols);
             }, []);
 
+            // Handle grid config changes
+            const handleGridChange = (newRows, newCols) => {
+                // Ensure rows * cols is even (for pairs)
+                if ((newRows * newCols) % 2 !== 0) {
+                    return false;
+                }
+                // Ensure we have enough monsters (max 36 pairs)
+                if ((newRows * newCols) / 2 > MONSTERS.length) {
+                    return false;
+                }
+                setGridRows(newRows);
+                setGridCols(newCols);
+                saveGridConfig(newRows, newCols);
+                return true;
+            };
 
 
-            // Initialize game cards (18 pairs for 6x6 grid)
+
+            // Initialize game cards based on grid configuration
             const initializeCards = useCallback(() => {
                 const selectedMonsters = shuffleArray(MONSTERS).slice(0, totalCards);
                 const pairs = [...selectedMonsters, ...selectedMonsters];
@@ -449,7 +626,7 @@
                 setFlippedIndices([]);
                 setMatchedPairs([]);
                 setTries(0);
-            }, []);
+            }, [totalCards]);
 
             // Start game
             const startGame = (name) => {
@@ -665,7 +842,7 @@
                                     color: '#6BCB77',
                                     fontSize: '1rem',
                                 }}>
-                                    ✨ Pairs: {matchedPairs.length}/18
+                                    ✨ Pairs: {matchedPairs.length}/{totalCards}
                                 </div>
                                 <div style={{
                                     background: 'rgba(255,255,255,0.1)',
@@ -817,12 +994,10 @@
                                     </button>
                                 </div>
 
-                                {/* Leaderboard */}
-                                {leaderboard.length > 0 && (
-                                    <div style={{ width: '100%', maxWidth: '400px' }}>
-                                        <Leaderboard scores={leaderboard} />
-                                    </div>
-                                )}
+                                {/* Leaderboard and Grid Config */}
+                                <div style={{ width: '100%', maxWidth: '400px' }}>
+                                    <Leaderboard scores={leaderboard} gridRows={gridRows} gridCols={gridCols} onGridChange={handleGridChange} />
+                                </div>
 
                                 {/* Instructions */}
                                 <div style={{
@@ -844,7 +1019,7 @@
 
                                 <div style={{
                                     display: 'grid',
-                                    gridTemplateColumns: 'repeat(6, 1fr)',
+                                    gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
                                     gap: '8px',
                                     maxWidth: '600px',
                                     margin: '0 auto',
@@ -869,7 +1044,7 @@
                         {gameState === GAME_STATES.PLAYING && (
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(6, 1fr)',
+                                gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
                                 gap: 'clamp(6px, 1.5vw, 12px)',
                                 maxWidth: '800px',
                                 margin: '0 auto',
@@ -953,7 +1128,7 @@
                                     </button>
 
                                     <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-                                        <Leaderboard scores={leaderboard} />
+                                        <Leaderboard scores={leaderboard} gridRows={gridRows} gridCols={gridCols} onGridChange={handleGridChange} />
                                     </div>
                                 </div>
                             </>
