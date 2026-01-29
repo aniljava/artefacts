@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monster Memory Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet"> -->
   <style>
     * {
       margin: 0;
@@ -23,9 +23,9 @@
   <div id="root"></div>
   
   <!-- React and Babel for JSX -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="script/react.production.min.js"></script>
+  <script src="script/react-dom.production.min.js"></script>
+  <script src="script/babel.min.js"></script>
   
   <script type="text/babel">
     const { useState, useEffect, useCallback } = React;
@@ -40,44 +40,44 @@
     // Monster data: 36 monsters total (12 from each sprite sheet)
     const MONSTERS = [
       // Sheet 1
-      { id: 1, name: 'Furry Frank', sheet: 0, row: 0, col: 0, color: '#F39C12' },
-      { id: 2, name: 'Wendy', sheet: 0, row: 0, col: 1, color: '#9B59B6' },
-      { id: 3, name: 'Spike', sheet: 0, row: 0, col: 2, color: '#3498DB' },
-      { id: 4, name: 'Draco', sheet: 0, row: 0, col: 3, color: '#27AE60' },
-      { id: 5, name: 'Cyclops Sam', sheet: 0, row: 1, col: 0, color: '#8E44AD' },
-      { id: 6, name: 'Lila', sheet: 0, row: 1, col: 1, color: '#E91E63' },
-      { id: 7, name: 'Marty', sheet: 0, row: 1, col: 2, color: '#8BC34A' },
-      { id: 8, name: 'Zappa', sheet: 0, row: 1, col: 3, color: '#E74C3C' },
-      { id: 9, name: 'Count Fang', sheet: 0, row: 2, col: 0, color: '#2C3E50' },
-      { id: 10, name: 'Buzzy', sheet: 0, row: 2, col: 1, color: '#F1C40F' },
-      { id: 11, name: 'Nessie', sheet: 0, row: 2, col: 2, color: '#3498DB' },
-      { id: 12, name: 'Rocky', sheet: 0, row: 2, col: 3, color: '#795548' },
+      { url: 'img/1/1.jpg', id: 1, name: 'Furry Frank', sheet: 0, row: 0, col: 0, color: '#F39C12' },
+      { url: 'img/1/2.jpg', id: 2, name: 'Wendy', sheet: 0, row: 0, col: 1, color: '#9B59B6' },
+      { url: 'img/1/3.jpg', id: 3, name: 'Spike', sheet: 0, row: 0, col: 2, color: '#3498DB' },
+      { url: 'img/1/4.jpg', id: 4, name: 'Draco', sheet: 0, row: 0, col: 3, color: '#27AE60' },
+      { url: 'img/1/5.jpg', id: 5, name: 'Cyclops Sam', sheet: 0, row: 1, col: 0, color: '#8E44AD' },
+      { url: 'img/1/6.jpg', id: 6, name: 'Lila', sheet: 0, row: 1, col: 1, color: '#E91E63' },
+      { url: 'img/1/7.jpg', id: 7, name: 'Marty', sheet: 0, row: 1, col: 2, color: '#8BC34A' },
+      { url: 'img/1/8.jpg', id: 8, name: 'Zappa', sheet: 0, row: 1, col: 3, color: '#E74C3C' },
+      { url: 'img/1/9.jpg', id: 9, name: 'Count Fang', sheet: 0, row: 2, col: 0, color: '#2C3E50' },
+      { url: 'img/1/10.jpg', id: 10, name: 'Buzzy', sheet: 0, row: 2, col: 1, color: '#F1C40F' },
+      { url: 'img/1/11.jpg', id: 11, name: 'Nessie', sheet: 0, row: 2, col: 2, color: '#3498DB' },
+      { url: 'img/1/12.jpg', id: 12, name: 'Rocky', sheet: 0, row: 2, col: 3, color: '#795548' },
       // Sheet 2
-      { id: 13, name: 'Squee', sheet: 1, row: 0, col: 0, color: '#E91E63' },
-      { id: 14, name: 'Grumble', sheet: 1, row: 0, col: 1, color: '#4CAF50' },
-      { id: 15, name: 'Spark', sheet: 1, row: 0, col: 2, color: '#9C27B0' },
-      { id: 16, name: 'Oozebert', sheet: 1, row: 0, col: 3, color: '#8BC34A' },
-      { id: 17, name: 'Bumble', sheet: 1, row: 1, col: 0, color: '#FF9800' },
-      { id: 18, name: 'Clara', sheet: 1, row: 1, col: 1, color: '#E91E63' },
-      { id: 19, name: 'Webster', sheet: 1, row: 1, col: 2, color: '#3F51B5' },
-      { id: 20, name: 'Stomper', sheet: 1, row: 1, col: 3, color: '#2196F3' },
-      { id: 21, name: 'Tombster', sheet: 1, row: 2, col: 0, color: '#4CAF50' },
-      { id: 22, name: 'Giggles', sheet: 1, row: 2, col: 1, color: '#FF5722' },
-      { id: 23, name: 'Blip', sheet: 1, row: 2, col: 2, color: '#8BC34A' },
-      { id: 24, name: 'Gnash', sheet: 1, row: 2, col: 3, color: '#607D8B' },
+      { url: 'img/2/1.jpg', id: 13, name: 'Squee', sheet: 1, row: 0, col: 0, color: '#E91E63' },
+      { url: 'img/2/2.jpg', id: 14, name: 'Grumble', sheet: 1, row: 0, col: 1, color: '#4CAF50' },
+      { url: 'img/2/3.jpg', id: 15, name: 'Spark', sheet: 1, row: 0, col: 2, color: '#9C27B0' },
+      { url: 'img/2/4.jpg', id: 16, name: 'Oozebert', sheet: 1, row: 0, col: 3, color: '#8BC34A' },
+      { url: 'img/2/5.jpg', id: 17, name: 'Bumble', sheet: 1, row: 1, col: 0, color: '#FF9800' },
+      { url: 'img/2/6.jpg', id: 18, name: 'Clara', sheet: 1, row: 1, col: 1, color: '#E91E63' },
+      { url: 'img/2/7.jpg', id: 19, name: 'Webster', sheet: 1, row: 1, col: 2, color: '#3F51B5' },
+      { url: 'img/2/8.jpg', id: 20, name: 'Stomper', sheet: 1, row: 1, col: 3, color: '#2196F3' },
+      { url: 'img/2/9.jpg', id: 21, name: 'Tombster', sheet: 1, row: 2, col: 0, color: '#4CAF50' },
+      { url: 'img/2/10.jpg', id: 22, name: 'Giggles', sheet: 1, row: 2, col: 1, color: '#FF5722' },
+      { url: 'img/2/11.jpg', id: 23, name: 'Blip', sheet: 1, row: 2, col: 2, color: '#8BC34A' },
+      { url: 'img/2/12.jpg', id: 24, name: 'Gnash', sheet: 1, row: 2, col: 3, color: '#607D8B' },
       // Sheet 3
-      { id: 25, name: 'Popcap', sheet: 2, row: 0, col: 0, color: '#3F51B5' },
-      { id: 26, name: 'Gobbles', sheet: 2, row: 0, col: 1, color: '#9C27B0' },
-      { id: 27, name: 'Starlah', sheet: 2, row: 0, col: 2, color: '#FFC107' },
-      { id: 28, name: 'Thorn', sheet: 2, row: 0, col: 3, color: '#4CAF50' },
-      { id: 29, name: 'Snappy', sheet: 2, row: 1, col: 0, color: '#03A9F4' },
-      { id: 30, name: 'Whiskers', sheet: 2, row: 1, col: 1, color: '#FF9800' },
-      { id: 31, name: 'Ivan', sheet: 2, row: 1, col: 2, color: '#90CAF9' },
-      { id: 32, name: 'Fizzle', sheet: 2, row: 1, col: 3, color: '#FF5722' },
-      { id: 33, name: 'Dribble', sheet: 2, row: 2, col: 0, color: '#7E57C2' },
-      { id: 34, name: 'Glub', sheet: 2, row: 2, col: 1, color: '#26A69A' },
-      { id: 35, name: 'Zozo', sheet: 2, row: 2, col: 2, color: '#FFEB3B' },
-      { id: 36, name: 'Chomp', sheet: 2, row: 2, col: 3, color: '#FF5722' },
+      { url: 'img/3/1.jpg',  id: 25, name: 'Popcap', sheet: 2, row: 0, col: 0, color: '#3F51B5' },
+      { url: 'img/3/2.jpg',  id: 26, name: 'Gobbles', sheet: 2, row: 0, col: 1, color: '#9C27B0' },
+      { url: 'img/3/3.jpg',  id: 27, name: 'Starlah', sheet: 2, row: 0, col: 2, color: '#FFC107' },
+      { url: 'img/3/4.jpg',  id: 28, name: 'Thorn', sheet: 2, row: 0, col: 3, color: '#4CAF50' },
+      { url: 'img/3/5.jpg',  id: 29, name: 'Snappy', sheet: 2, row: 1, col: 0, color: '#03A9F4' },
+      { url: 'img/3/6.jpg',  id: 30, name: 'Whiskers', sheet: 2, row: 1, col: 1, color: '#FF9800' },
+      { url: 'img/3/7.jpg',  id: 31, name: 'Ivan', sheet: 2, row: 1, col: 2, color: '#90CAF9' },
+      { url: 'img/3/8.jpg',  id: 32, name: 'Fizzle', sheet: 2, row: 1, col: 3, color: '#FF5722' },
+      { url: 'img/3/9.jpg',  id: 33, name: 'Dribble', sheet: 2, row: 2, col: 0, color: '#7E57C2' },
+      { url: 'img/3/10.jpg',  id: 34, name: 'Glub', sheet: 2, row: 2, col: 1, color: '#26A69A' },
+      { url: 'img/3/11.jpg',  id: 35, name: 'Zozo', sheet: 2, row: 2, col: 2, color: '#FFEB3B' },
+      { url: 'img/3/12.jpg',  id: 36, name: 'Chomp', sheet: 2, row: 2, col: 3, color: '#FF5722' },
     ];
 
     const GAME_STATES = {
@@ -123,32 +123,39 @@
 
     // Monster sprite component
     const MonsterSprite = ({ monster, size = 60 }) => {
-      const spriteWidth = 1024;
-      const spriteHeight = 768;
-      const cols = 4;
-      const rows = 3;
-      const cellWidth = spriteWidth / cols;
-      const cellHeight = spriteHeight / rows;
-      
-      const xPos = monster.col * cellWidth;
-      const yPos = monster.row * cellHeight;
+    //   monster image is contained at moster.  
+    const imgWidth = 110;
+    const imgHeight = 135 ;
+    
+
       
       return (
         <div style={{
-          width: size,
-          height: size,
-          backgroundImage: `url(${SPRITE_SHEETS[monster.sheet]})`,
-          backgroundPosition: `-${xPos * (size / cellWidth)}px -${yPos * (size / cellHeight)}px`,
-          backgroundSize: `${spriteWidth * (size / cellWidth)}px ${spriteHeight * (size / cellHeight)}px`,
-          borderRadius: '8px',
-        }} />
+          width: imgWidth,
+          height: imgHeight,
+          position: 'relative',
+          overflow: 'hidden',            
+          borderRadius: '1px',
+        }}>
+            <img src = {monster.url} 
+            style = {{
+                width: '100%',
+                height: '100%',
+                
+            }}
+            />
+        </div>
       );
     };
 
     // Card component
     const Card = ({ card, isFlipped, isMatched, onClick, previewMode, gridSize }) => {
       const showFront = isFlipped || isMatched || previewMode;
-      const cardSize = gridSize === 6 ? 'clamp(50px, 12vw, 90px)' : 'clamp(60px, 15vw, 100px)';
+    //   const cardSize = gridSize === 6 ? 'clamp(50px, 12vw, 90px)' : 'clamp(60px, 15vw, 100px)';
+        const cardSize = 'clamp(50px, 12vw, 150px)';
+
+        const cardWidth = 'clamp(50px, 12vw, 110px)';
+        const cardHeight = 'clamp(50px, 12vw, 135px)';
       
       return (
         <div
@@ -156,8 +163,8 @@
           className={`card-container ${isMatched ? 'matched' : ''}`}
           style={{
             perspective: '1000px',
-            width: cardSize,
-            height: cardSize,
+            width: cardWidth,
+            height: cardHeight,
             cursor: isMatched ? 'default' : 'pointer',
           }}
         >
@@ -168,7 +175,7 @@
               width: '100%',
               height: '100%',
               transformStyle: 'preserve-3d',
-              transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1)',
               transform: showFront ? 'rotateY(180deg)' : 'rotateY(0deg)',
             }}
           >
@@ -179,13 +186,13 @@
                 width: '100%',
                 height: '100%',
                 backfaceVisibility: 'hidden',
-                borderRadius: '12px',
+                borderRadius: '5px',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3), inset 0 2px 0 rgba(255,255,255,0.2)',
-                border: '2px solid rgba(255,255,255,0.3)',
+                border: '1px solid rgba(255,255,255,0.3)',
               }}
             >
               <div style={{ fontSize: 'clamp(1.2rem, 4vw, 2rem)', opacity: 0.9 }}>❓</div>
@@ -193,7 +200,7 @@
                 position: 'absolute',
                 inset: '4px',
                 border: '2px dashed rgba(255,255,255,0.2)',
-                borderRadius: '8px',
+                borderRadius: '2px',
                 pointerEvents: 'none',
               }} />
             </div>
@@ -206,13 +213,13 @@
                 height: '100%',
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)',
-                borderRadius: '12px',
+                borderRadius: '2px',
                 background: `linear-gradient(135deg, ${card.color}30 0%, ${card.color}60 100%)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: `0 4px 20px ${card.color}30`,
-                border: `2px solid ${card.color}`,
+                border: `1px solid ${card.color}`,
                 overflow: 'hidden',
               }}
             >
@@ -230,13 +237,13 @@
       return (
         <div style={{
           background: 'rgba(255,255,255,0.08)',
-          borderRadius: '16px',
+          borderRadius: '2px',
           padding: '16px',
           marginBottom: '20px',
           border: '1px solid rgba(255,255,255,0.1)',
         }}>
           <div style={{
-            fontFamily: '"Fredoka One", cursive',
+            fontFamily: '"Roboto", cursive',
             color: '#FFD93D',
             fontSize: '0.9rem',
             marginBottom: '12px',
@@ -256,7 +263,7 @@
                 onClick={() => onSelect(player)}
                 style={{
                   padding: '8px 16px',
-                  borderRadius: '20px',
+                  borderRadius: '2px',
                   border: selectedPlayer === player 
                     ? '2px solid #6BCB77' 
                     : '2px solid rgba(255,255,255,0.2)',
@@ -264,10 +271,10 @@
                     ? 'rgba(107, 203, 119, 0.3)' 
                     : 'rgba(255,255,255,0.1)',
                   color: 'white',
-                  fontFamily: '"Fredoka One", cursive',
+                  fontFamily: '"Roboto", cursive',
                   fontSize: '0.9rem',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.1s ease',
                 }}
               >
                 {player}
@@ -277,11 +284,11 @@
               onClick={onNewPlayer}
               style={{
                 padding: '8px 16px',
-                borderRadius: '20px',
+                borderRadius: '2px',
                 border: '2px dashed rgba(255,255,255,0.3)',
                 background: 'transparent',
                 color: 'rgba(255,255,255,0.7)',
-                fontFamily: '"Fredoka One", cursive',
+                fontFamily: '"Roboto", cursive',
                 fontSize: '0.9rem',
                 cursor: 'pointer',
               }}
@@ -303,12 +310,12 @@
         <div style={{
           background: 'rgba(255,255,255,0.1)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
+          borderRadius: '2px',
           padding: '20px',
           border: '2px solid rgba(255,255,255,0.2)',
         }}>
           <h3 style={{
-            fontFamily: '"Fredoka One", cursive',
+            fontFamily: '"Roboto", cursive',
             fontSize: '1.3rem',
             marginBottom: '15px',
             textAlign: 'center',
@@ -333,8 +340,8 @@
                       : index === 2
                         ? 'linear-gradient(90deg, #CD7F32 0%, #B87333 100%)'
                         : 'rgba(255,255,255,0.1)',
-                  borderRadius: '10px',
-                  fontFamily: '"Fredoka One", cursive',
+                  borderRadius: '2px',
+                  fontFamily: '"Roboto", cursive',
                   fontSize: '0.9rem',
                   color: index < 3 ? '#1a1a2e' : 'white',
                 }}
@@ -347,7 +354,7 @@
                   fontWeight: 'bold',
                   background: index < 3 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
                   padding: '3px 10px',
-                  borderRadius: '15px',
+                  borderRadius: '2px',
                   fontSize: '0.85rem',
                 }}>
                   {entry.score} tries
@@ -475,7 +482,7 @@
         
         initializeCards();
         setGameState(GAME_STATES.PREVIEW);
-        setPreviewCountdown(1);
+        setPreviewCountdown(2);
       };
 
       // Preview countdown
@@ -483,8 +490,8 @@
         if (gameState !== GAME_STATES.PREVIEW) return;
         
         if (previewCountdown > 0) {
-          const timer = setTimeout(() => setPreviewCountdown(prev => prev - 1), 1000);
-          return () => clearTimeout(timer);
+            const timer = setTimeout(() => setPreviewCountdown(prev => prev - 1), 1000);
+            return () => clearTimeout(timer);
         } else {
           setGameState(GAME_STATES.PLAYING);
         }
@@ -633,7 +640,7 @@
           }}>
             {/* Header */}
             <h1 style={{
-              fontFamily: '"Fredoka One", cursive',
+              fontFamily: '"Roboto", cursive',
               fontSize: 'clamp(1.8rem, 5vw, 2.5rem)',
               textAlign: 'center',
               marginBottom: '10px',
@@ -659,7 +666,7 @@
                   background: 'rgba(255,255,255,0.1)',
                   padding: '8px 20px',
                   borderRadius: '25px',
-                  fontFamily: '"Fredoka One", cursive',
+                  fontFamily: '"Roboto", cursive',
                   color: 'white',
                   fontSize: '1rem',
                 }}>
@@ -669,7 +676,7 @@
                   background: 'rgba(255,255,255,0.1)',
                   padding: '8px 20px',
                   borderRadius: '25px',
-                  fontFamily: '"Fredoka One", cursive',
+                  fontFamily: '"Roboto", cursive',
                   color: '#FFD93D',
                   fontSize: '1rem',
                 }}>
@@ -679,7 +686,7 @@
                   background: 'rgba(255,255,255,0.1)',
                   padding: '8px 20px',
                   borderRadius: '25px',
-                  fontFamily: '"Fredoka One", cursive',
+                  fontFamily: '"Roboto", cursive',
                   color: '#6BCB77',
                   fontSize: '1rem',
                 }}>
@@ -700,7 +707,7 @@
                 {/* Loading indicator */}
                 {!imagesLoaded && (
                   <div style={{
-                    fontFamily: '"Fredoka One", cursive',
+                    fontFamily: '"Roboto", cursive',
                     color: '#FFD93D',
                     fontSize: '1rem',
                     animation: 'float 1s ease-in-out infinite',
@@ -733,7 +740,7 @@
                   {(showNewPlayerInput || knownPlayers.length === 0) && (
                     <>
                       <h2 style={{
-                        fontFamily: '"Fredoka One", cursive',
+                        fontFamily: '"Roboto", cursive',
                         color: 'white',
                         textAlign: 'center',
                         marginBottom: '20px',
@@ -755,7 +762,7 @@
                           borderRadius: '50px',
                           border: 'none',
                           background: 'rgba(255,255,255,0.9)',
-                          fontFamily: '"Fredoka One", cursive',
+                          fontFamily: '"Roboto", cursive',
                           textAlign: 'center',
                           outline: 'none',
                           boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
@@ -777,7 +784,7 @@
                             border: '1px solid rgba(255,255,255,0.3)',
                             borderRadius: '25px',
                             color: 'rgba(255,255,255,0.7)',
-                            fontFamily: '"Fredoka One", cursive',
+                            fontFamily: '"Roboto", cursive',
                             cursor: 'pointer',
                             fontSize: '0.9rem',
                           }}
@@ -795,7 +802,7 @@
                       width: '100%',
                       padding: '14px 28px',
                       fontSize: '1.2rem',
-                      fontFamily: '"Fredoka One", cursive',
+                      fontFamily: '"Roboto", cursive',
                       borderRadius: '50px',
                       border: 'none',
                       background: playerName.trim().length >= 2 && imagesLoaded
@@ -829,7 +836,7 @@
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}>
                   <h3 style={{
-                    fontFamily: '"Fredoka One", cursive',
+                    fontFamily: '"Roboto", cursive',
                     color: '#FFD93D',
                     marginBottom: '15px',
                     textAlign: 'center',
@@ -857,7 +864,7 @@
             {gameState === GAME_STATES.PREVIEW && (
               <div style={{ textAlign: 'center' }}>
                 <div style={{
-                  fontFamily: '"Fredoka One", cursive',
+                  fontFamily: '"Consolas", monospace',
                   fontSize: '1.5rem',
                   color: '#FFD93D',
                   marginBottom: '15px',
@@ -866,7 +873,7 @@
                   👀 Memorize the monsters! 👀
                 </div>
                 <div style={{
-                  fontFamily: '"Fredoka One", cursive',
+                  fontFamily: '"Roboto", cursive',
                   fontSize: '3rem',
                   color: '#FF6B35',
                   textShadow: '0 4px 20px rgba(255, 107, 53, 0.6)',
@@ -903,11 +910,11 @@
                 display: 'grid',
                 gridTemplateColumns: 'repeat(6, 1fr)',
                 gap: 'clamp(6px, 1.5vw, 12px)',
-                maxWidth: '600px',
+                maxWidth: '800px',
                 margin: '0 auto',
-                padding: '15px',
+                padding: '10px',
                 background: 'rgba(255,255,255,0.05)',
-                borderRadius: '20px',
+                borderRadius: '5px',
                 border: '2px solid rgba(255,255,255,0.1)',
                 justifyItems: 'center',
               }}>
@@ -941,7 +948,7 @@
                     🎉
                   </div>
                   <h2 style={{
-                    fontFamily: '"Fredoka One", cursive',
+                    fontFamily: '"Roboto", cursive',
                     fontSize: 'clamp(1.8rem, 5vw, 2.5rem)',
                     background: 'linear-gradient(135deg, #FFD93D 0%, #FF6B35 100%)',
                     WebkitBackgroundClip: 'text',
@@ -951,7 +958,7 @@
                     Amazing, {playerName}!
                   </h2>
                   <p style={{
-                    fontFamily: '"Fredoka One", cursive',
+                    fontFamily: '"Roboto", cursive',
                     fontSize: '1.3rem',
                     color: 'white',
                     marginBottom: '25px',
@@ -968,7 +975,7 @@
                     style={{
                       padding: '16px 35px',
                       fontSize: '1.2rem',
-                      fontFamily: '"Fredoka One", cursive',
+                      fontFamily: '"Roboto", cursive',
                       borderRadius: '50px',
                       border: 'none',
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
